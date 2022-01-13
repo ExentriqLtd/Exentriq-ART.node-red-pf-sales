@@ -1,0 +1,90 @@
+<script type="text/javascript">
+
+  const productsGlovoPDF = [
+    { "code": "200004", "ean": "8059300850091", "customer_code": "357306", "description": "Yummix Delicato 80g", "boxItems": 8 },
+    { "code": "200002", "ean": "8059300850077", "customer_code": "357307", "description": "Yummix Orientale 80g", "boxItems": 8 },
+    { "code": "200003", "ean": "8059300850084", "customer_code": "357308", "description": "Yummix Piccante 80g", "boxItems": 8 },
+    { "code": "200000", "ean": "8059300850039", "customer_code": "357305", "description": "Lattugood 80g", "boxItems": 8 },
+    { "code": "200001", "ean": "80593008500??", "customer_code": "??????", "description": "Basilicooh 25g", "boxItems": 10 }
+  ];
+
+  const warehousesGlovoPDF = [
+    { "name": "MILF2 - Filzi", "city": "Milano", "address": "Via Fabio Filzi, 8", "from": "08:00", "to": "13:00" },
+    { "name": "MANSUETO",      "city": "Milano", "address": "Via Privata Mansueto, 3", "from": "07:30", "to": "12:00" },
+    { "name": "MILF3 - Ceresio",       "city": "Milano", "address": "Via Farini, 3", "from": "07:30", "to": "12:00" },
+    { "name": "MONTE NERO",    "city": "Milano", "address": "Viale Monte Nero, 72", "from": "07:30", "to": "12:00" }
+  ];
+
+  RED.nodes.registerType('glovo-pdf', {
+    category: 'Planet Farms',
+    color: '#73938b',
+    defaults: {
+      name: { value: '' },
+      products: { value: JSON.stringify(productsGlovoPDF) },
+      warehouses: { value: JSON.stringify(warehousesGlovoPDF) }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'glovo.svg',
+    label: function() {
+      return this.name || 'Glovo (PDF)';
+    },
+    paletteLabel: 'Glovo (PDF)',
+    oneditprepare: function() {
+      $("#node-input-products").typedInput({
+        type: "json",
+        types: ["json"]
+      });
+      $("#node-input-warehouses").typedInput({
+        type: "json",
+        types: ["json"]
+      });
+    }
+  });
+</script>
+  
+<script type="text/html" data-template-name="glovo-pdf">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-products"><i class="fa fa-database"></i> Products</label>
+    <input type="text" id="node-input-products">
+  </div>
+  <div class="form-row">
+    <label for="node-input-warehouses"><i class="fa fa-database"></i> Warehouses</label>
+    <input type="text" id="node-input-warehouses">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="glovo-pdf">
+  <p>Parses business documents (orders, confirmations etc.), coming from <strong>Glovo </strong> in PDF format, to extract information.</p>
+  
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload<span class="property-type">buffer</span></dt>
+    <dd>The PDF content.</dd>
+    <dt>filename<span class="property-type">string</span></dt>
+    <dd>The PDF filename.</dd>
+  </dl>
+  
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>A JavaScript object.</dd>
+    <dt>documentType <span class="property-type">string</span></dt>
+    <dd>The detected business document type (order, confirmation etc.) of the PDF.</dd>
+    <dt>recognizedText <span class="property-type">object</span></dt>
+    <dd>The text as it was extracted from the PDF</dd>
+  </dl>
+  
+  <h3>Details</h3>
+  <p>PDF files coming from <strong>Glovo</strong> contain parsable text.</p>
+  <p>The PDF is processed as follows:</p>
+  <ul>
+    <li>text extraction</li>
+    <li>text analysis</li>
+    <li>exception handling (fix or report)</li>
+  </ul>
+</script>

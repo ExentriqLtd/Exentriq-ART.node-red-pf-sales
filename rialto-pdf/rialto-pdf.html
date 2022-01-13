@@ -1,0 +1,75 @@
+<script type="text/javascript">
+
+const productsRialto = [
+  { code: '200004', ean: '8059300850091', customer_code: '366.3502', description: 'Yummix Delicato 80g', boxItems: 8 },
+  { code: '200002', ean: '8059300850077', customer_code: '366.3503', description: 'Yummix Orientale 80g', boxItems: 8 },
+  { code: '200003', ean: '8059300850084', customer_code: '366.3504', description: 'Yummix Piccante 80g', boxItems: 8 },
+  { code: '200000', ean: '8059300850039', customer_code: '366.3501', description: 'Lattugood 80g', boxItems: 8 },
+  { code: '200001', ean: '80593008500??', customer_code: '???.????', description: 'Basilicooh 25g', boxItems: 10 }
+];
+
+  RED.nodes.registerType('rialto-pdf', {
+    category: 'Planet Farms',
+    color: '#73938b',
+    defaults: {
+      name: { value: '' },
+      products: { value: JSON.stringify(productsRialto) }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'rialto.svg',
+    label: function() {
+      return this.name || 'Rialto';
+    },
+    paletteLabel: 'Rialto',
+    oneditprepare: function() {
+      $("#node-input-products").typedInput({
+        type:"json",
+        types:["json"]
+      });
+    }
+  });
+  </script>
+  
+<script type="text/html" data-template-name="rialto-pdf">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-products"><i class="fa fa-database"></i> Products</label>
+    <input type="text" id="node-input-products">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="rialto-pdf">
+  <p>Parses business documents (orders, confirmations etc.), coming from <strong>Rialto</strong> in PDF format, to extract information.</p>
+  
+  <h3>Inputs</h3>
+    <dl class="message-properties">
+      <dt>payload<span class="property-type">buffer</span></dt>
+      <dd>The PDF content.</dd>
+      <dt>filename<span class="property-type">string</span></dt>
+      <dd>The PDF filename.</dd>
+  </dl>
+  
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>A JavaScript object.</dd>
+    <dt>documentType <span class="property-type">string</span></dt>
+    <dd>The detected business document type (order, confirmation etc.) of the PDF.</dd>
+    <dt>recognizedText <span class="property-type">object</span></dt>
+    <dd>The text as it was extracted from the PDF</dd>
+  </dl>
+  
+  <h3>Details</h3>
+  <p>PDF files coming from <strong>Rialto</strong> contain parsable text.</p>
+  <p>The PDF is processed as follows:</p>
+  <ul>
+    <li>text extraction</li>
+    <li>text analysis</li>
+    <li>exception handling (fix or report)</li>
+  </ul>
+  <p>Some useful information can be gathered analyzing the filename of the PDF.</p>
+</script>

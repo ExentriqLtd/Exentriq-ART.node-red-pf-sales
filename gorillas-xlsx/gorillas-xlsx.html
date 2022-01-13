@@ -1,0 +1,96 @@
+<script type="text/javascript">
+
+  const productsGorillas = [
+    { "code": "200004", "ean": "8059300850091", "customer_code": "A65002008", "description": "Yummix Delicato 80g", "boxItems": 8 },
+    { "code": "200002", "ean": "8059300850077", "customer_code": "A65003008", "description": "Yummix Orientale 80g", "boxItems": 8 },
+    { "code": "200003", "ean": "8059300850084", "customer_code": "A65004008", "description": "Yummix Piccante 80g", "boxItems": 8 },
+    { "code": "200000", "ean": "8059300850039", "customer_code": "A65001008", "description": "Lattugood 80g", "boxItems": 8 },
+    { "code": "200001", "ean": "80593008500??", "customer_code": "A6500????", "description": "Basilicooh 25g", "boxItems": 10 }
+  ];
+
+  const warehousesGorillas = [
+    { "name": "CARPI|LAMBRATE", "city": "Milano", "address": "Via Eugenio Carpi, 13" },
+    { "name": "COLONNE",        "city": "Milano", "address": "Via Lesmi, 7" },
+    { "name": "DE ANGELI",      "city": "Milano", "address": "Via Lorenzetti, 4" },
+    { "name": "NAVIGLI",        "city": "Milano", "address": "Alzaia Naviglio Pavese, 20" },
+    { "name": "NOLO",           "city": "Milano", "address": "Via Marocco, 8" },
+    { "name": "PORTA ROMANA",   "city": "Milano", "address": "Via Tertulliano, 68" },
+    { "name": "PORTA VENEZIA",  "city": "Milano", "address": "Via Vittorio Veneto, 12" },
+    { "name": "SEMPIONE",       "city": "Milano", "address": "Via Antonio Pacinotti, 9" },
+    { "name": "BICOCCA",        "city": "Milano", "address": "Indirizzo sconosciuto" }
+  ];
+ 
+  RED.nodes.registerType('gorillas-xlsx', {
+    category: 'Planet Farms',
+    color: '#73938b',
+    defaults: {
+      name: { value: '' },
+      products: { value: JSON.stringify(productsGorillas) },
+      warehouses: { value: JSON.stringify(warehousesGorillas) }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'gorillas.svg',
+    label: function() {
+      return this.name || 'Gorillas';
+    },
+    paletteLabel: 'Gorillas',
+    oneditprepare: function() {
+      $("#node-input-products").typedInput({
+        type:"json",
+        types:["json"]
+      });
+      $("#node-input-warehouses").typedInput({
+        type:"json",
+        types:["json"]
+      });
+    }
+  });
+</script>
+    
+  <script type="text/html" data-template-name="gorillas-xlsx">
+    <div class="form-row">
+      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+      <label for="node-input-products"><i class="fa fa-database"></i> Products</label>
+      <input type="text" id="node-input-products">
+    </div>
+    <div class="form-row">
+      <label for="node-input-warehouses"><i class="fa fa-database"></i> Warehouses</label>
+      <input type="text" id="node-input-warehouses">
+    </div>
+  </script>
+  
+  <script type="text/html" data-help-name="gorillas-xlsx">
+    <p>Parses business documents (orders, confirmations etc.), coming from <strong>Gorillas</strong> in Excel format, to extract information.</p>
+    
+    <h3>Inputs</h3>
+      <dl class="message-properties">
+        <dt>payload<span class="property-type">buffer</span></dt>
+        <dd>The Excel content.</dd>
+        <dt>filename<span class="property-type">string</span></dt>
+        <dd>The Excel filename.</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">object</span></dt>
+      <dd>A JavaScript object.</dd>
+      <dt>documentType <span class="property-type">string</span></dt>
+      <dd>The detected business document type (order, confirmation etc.) of the Excel.</dd>
+      <dt>recognizedText <span class="property-type">object</span></dt>
+      <dd>The text as it was extracted from the Excel</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>The Excel file is processed as follows:</p>
+    <ul>
+      <li>data extraction</li>
+      <li>data analysis</li>
+      <li>exception handling (fix or report)</li>
+    </ul>
+    <p>Every email message has an Excel attachment that contains a single order for multiple destinations.</p>
+    <p>Some useful information can be gathered analyzing the subject of the email message.</p>
+  </script>

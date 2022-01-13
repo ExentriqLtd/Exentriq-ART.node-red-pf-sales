@@ -1,0 +1,84 @@
+<script type="text/javascript">
+
+  const productsHelbiz = [
+    { code: '200004', ean: '8059300850091', customer_code: '8059300850091', description: 'Yummix Delicato 80g', boxItems: 8 },
+    { code: '200002', ean: '8059300850077', customer_code: '8059300850077', description: 'Yummix Orientale 80g', boxItems: 8 },
+    { code: '200003', ean: '8059300850084', customer_code: '8059300850084', description: 'Yummix Piccante 80g', boxItems: 8 },
+    { code: '200000', ean: '8059300850039', customer_code: '8059300850039', description: 'Lattugood 80g', boxItems: 8 },
+    { code: '200001', ean: '80593008500??', customer_code: '80593008500??', description: 'Basilicooh 25g', boxItems: 10 }
+  ];
+
+  const warehousesHelbiz = [
+    { name: 'COSTANZA', city: 'Milano', address: 'Via Costanza, 1' }
+  ];
+ 
+  RED.nodes.registerType('helbiz-eml', {
+    category: 'Planet Farms',
+    color: '#73938b',
+    defaults: {
+      name: { value: '' },
+      products: { value: JSON.stringify(productsHelbiz) },
+      warehouses: { value: JSON.stringify(warehousesHelbiz) }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'helbiz.svg',
+    label: function() {
+      return this.name || 'Helbiz';
+    },
+    paletteLabel: 'Helbiz',
+    oneditprepare: function() {
+      $("#node-input-products").typedInput({
+        type:"json",
+        types:["json"]
+      });
+      $("#node-input-warehouses").typedInput({
+        type:"json",
+        types:["json"]
+      });
+    }
+  });
+</script>
+    
+  <script type="text/html" data-template-name="helbiz-eml">
+    <div class="form-row">
+      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+      <label for="node-input-products"><i class="fa fa-database"></i> Products</label>
+      <input type="text" id="node-input-products">
+    </div>
+    <div class="form-row">
+      <label for="node-input-warehouses"><i class="fa fa-database"></i> Warehouses</label>
+      <input type="text" id="node-input-warehouses">
+    </div>
+  </script>
+  
+  <script type="text/html" data-help-name="helbiz-eml">
+    <p>Parses <strong>Helbiz</strong> email messages, to extract information.</p>
+    
+    <h3>Inputs</h3>
+      <dl class="message-properties">
+        <dt>payload<span class="property-type">object</span></dt>
+        <dd>The parsed email message.</dd>
+    </dl>
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+      <dt>payload <span class="property-type">object</span></dt>
+      <dd>A JavaScript object.</dd>
+      <dt>documentType <span class="property-type">string</span></dt>
+      <dd>The detected business document type (order, confirmation etc.).</dd>
+      <dt>recognizedText <span class="property-type">object</span></dt>
+      <dd>The text as it was extracted from the HTML found at the link provided.</dd>
+    </dl>
+    
+    <h3>Details</h3>
+    <p>The email message is processed as follows:</p>
+    <ul>
+      <li>data extraction</li>
+      <li>data analysis</li>
+      <li>exception handling (fix or report)</li>
+    </ul>
+  </script>
