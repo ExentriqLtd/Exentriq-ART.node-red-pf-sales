@@ -1,6 +1,8 @@
-# pf-ingest
+# pf-sales
 
-Node-RED nodes for Planet Farms business document ingestion automation.
+Node-RED nodes for Planet Farms order ingestion automation.
+
+Each node outputs a structure that will be submitted to Elastisearch (see below).
 
 ## Managed Customers
 
@@ -16,9 +18,10 @@ Node-RED nodes for Planet Farms business document ingestion automation.
 
 ## Elasticsearch configuration
 
-Two indices are used:
+Three indices are used:
 
 * `orders`
+* `orders-flat`
 * `confirmations`
 
 The `confirmations` index must be configured with the following mapping:
