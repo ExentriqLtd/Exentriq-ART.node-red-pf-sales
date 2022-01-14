@@ -14,6 +14,10 @@ module.exports = function(RED) {
     ERROR: { text: 'error', fill: 'red', shape: 'dot' }
   });
 
+  const overrides = (body) => {
+    return body.toLowerCase().indexOf('here is a reminder') > -1;
+  };
+
   const processPDF = async (pdf, products, warehouses) => {
 
     try {
@@ -73,11 +77,10 @@ module.exports = function(RED) {
 
     this.on('input', async (msg, send, done) => {
       if (msg.hasOwnProperty('payload')) {
-
         try {
-
           context.queue.push({
             pdf: msg.payload,
+            body: msg.body,
             subject: msg.subject,
             date: msg.date,
             messageID: msg.messageID
@@ -89,11 +92,12 @@ module.exports = function(RED) {
   
             while (context.queue.length > 0) {
 
-              const { pdf, subject, date, messageID } = context.queue.shift();
+              const { pdf, body, subject, date, messageID } = context.queue.shift();
 
               context.status = Status.PROCESSING;
               setNodeStatus(node);
               const result = await processPDF(pdf, products, warehouses);
+              result.content.overrides  = overrides(body);
 
               send({
                 recognizedText: result.text,
