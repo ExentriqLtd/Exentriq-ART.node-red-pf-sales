@@ -45,11 +45,11 @@ module.exports = function(RED) {
     const warehouses = JSON.parse(config.warehouses);
 
     this.on('input', async (msg, send, done) => {
-      if (msg.hasOwnProperty('payload')) {
+      if (msg.hasOwnProperty('body')) {
 
         try {
           context.queue.push({
-            body: msg.payload,
+            body: msg.body,
             subject: msg.subject,
             date: msg.date,
             messageID: msg.messageID
