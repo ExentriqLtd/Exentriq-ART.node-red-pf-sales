@@ -1,23 +1,23 @@
 const levenshtein = require('js-levenshtein');
 
-const ambiguousChars = '6890/B';
+const ambiguousChars = '6890/BA';
 
 const regexes = {
   order: {
-    number: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*(?<number>\w\/[\d\/B]*) DEL/,
+    number: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*(?<number>\w\/[\d\/BA]*) DEL/,
     overrides: /ATTENZIONE: IL PRESENTE ORDINE DEL .* SOSTITUISCE IL\nPRECEDENTE INVIATO IL .* CON IL MEDESIMO CODICE/,
-    date: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*.*DEL\s*(?<day>[\d\/B]{2})\/(?<month>[\d\/B]{2})\/(?<year>[\d\/B]{4})/,
+    date: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO\s*.*DEL\s*(?<day>[\d\/BA]{2})\/(?<month>[\d\/BA]{2})\/(?<year>[\d\/BA]{4})/,
     destination: /^(?<address>.*)$\n^ATTENZIONE: IL NOSTRO/m,
-    delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>[\d\/B]{1,2})\/(?<month>[\d\/B]{1,2})\/(?<year>[\d\/B]{1,2})/,
-    warehouse: /IL NOSTRO MAGAZZINO RICEVE MERCI DALLE (?<fromHour>[\d\/B]{1,2})\.(?<fromMinute>[\d\/B]{1,2}) ALLE (?<toHour>[\d\/B]{1,2})\.(?<toMinute>[\d\/B]{1,2})/,
-    products: /(?<code>[\d\/B]{6,})\s*(?<description>[\w\s]*G)\s*(?<quantity>[\d\/B]*)\s*(?<cost>[\d\/B\,\s]*)\n/g,
-    boxCount: /TOTALE COLL[IT]\s*(?<count>[\d\/B]*)/
+    delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>[\d\/BA]{1,2})\/(?<month>[\d\/BA]{1,2})\/(?<year>[\d\/BA]{1,2})/,
+    warehouse: /IL NOSTRO MAGAZZINO RICEVE MERCI DALLE (?<fromHour>[\d\/BA]{1,2})\.(?<fromMinute>[\d\/BA]{1,2}) ALLE (?<toHour>[\d\/BA]{1,2})\.(?<toMinute>[\d\/BA]{1,2})/,
+    products: /(?<code>[\d\/BA]{6,})\s*(?<description>[\w\s]*G)\s*(?<quantity>[\d\/BA]*)\s*(?<cost>[\d\/BA\,\s]*)\n/g,
+    boxCount: /TOTALE COLL[IT]\s*(?<count>[\d\/BA]*)/
   },
   confirmation: {
-    number: /ORDINE NR. (?<number>\w\/[\d\/B]*)/,
-    products: /(?<code>[\d\/B]{6,})\s*(?<description>[\w\s]*?G*)\s*(?<boxes>[\d\/B]*)\s*(?<items>[\d\/B\.]*)\s{5,}(?<unitCost>[\d\/B]{1,2},\s{0,1}[\d\/B]{2,})\s*(?<totalCost>[\d\/B\.]*,\s{0,1}[\d\/B]{3,})/g,
-    totals: /\n(?<boxTotal>[\d\/B]*)\s{1,}(?<itemTotal>[\d\/B\.]*)\s{5,}(?<costTotal>[\d\.\/B]*,\/{0,1}\s{0,1}[\d\/B]{2,})\nSi prega di verificare/,
-    date: /Distinti saluti\nLimito di Pioltello, (?<day>[\d\/B]{2,})\s*(?<month>\w*)\s*(?<year>[\d\/B]{4})/
+    number: /ORDINE NR. (?<number>\w\/[\d\/BA]*)/,
+    products: /(?<code>[\d\/BA]{6,})\s*(?<description>[\w\s]*?G*)\s*(?<boxes>[\d\/BA]*)\s*(?<items>[\d\/BA\.]*)\s{5,}(?<unitCost>[\d\/BA]{1,2},\s{0,1}[\d\/BA]{2,})\s*(?<totalCost>[\d\/BA\.]*,\s{0,1}[\d\/BA]{3,})/g,
+    totals: /\n(?<boxTotal>[\d\/BA]*)\s{1,}(?<itemTotal>[\d\/BA\.]*)\s{5,}(?<costTotal>[\d\.\/BA]*,\/{0,1}\s{0,1}[\d\/BA]{2,})\nSi prega di verificare/,
+    date: /Distinti saluti\nLimito di Pioltello, (?<day>[\d\/BA]{2,})\s*(?<month>\w*)\s*(?<year>[\d\/BA]{4})/
   }
 };
 
@@ -92,8 +92,11 @@ const findFirstDifference = (str1, str2) => {
 
 const fixNumber = (number, estimate) => {
 
-  let numberString = number.toFixed(2);
-  let estimateString = estimate.toFixed(2);
+  // let numberString = number.toFixed(2);
+  // let estimateString = estimate.toFixed(2);
+
+  let numberString = number.toString();
+  let estimateString = estimate.toString();
 
   const iterations = Math.abs(numberString.length - estimateString.length);
 
@@ -393,9 +396,12 @@ const analyzeConfirmation = (options) => {
 
   match = text.match(regexes.confirmation.totals);
   if (match) {
-    confirmation.totals.boxes = parseInt(match.groups.boxTotal.replace('.', ''));
-    confirmation.totals.items = parseInt(match.groups.itemTotal.replace('.', ''));
-    confirmation.totals.cost = parseFloat(match.groups.costTotal.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0').replace('/', '7'));
+    // confirmation.totals.boxes = parseInt(match.groups.boxTotal.replace('.', ''));
+    // confirmation.totals.items = parseInt(match.groups.itemTotal.replace('.', ''));
+    // confirmation.totals.cost = parseFloat(match.groups.costTotal.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0').replace('/', '7'));
+    confirmation.totals.boxes = match.groups.boxTotal.replace('.', '');
+    confirmation.totals.items = match.groups.itemTotal.replace('.', '');
+    confirmation.totals.cost = match.groups.costTotal.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0').replace('/', '7');
   } else {
     confirmation.anomalies.push('Totals not recognized');
   }
@@ -430,7 +436,6 @@ const analyzeConfirmation = (options) => {
         }
       }
 
-
       if (!fixed) {
         confirmation.anomalies.push(`Product "${product.description}": total cost (€ ${product.total_cost}) is not equal to number of items (${product.items}) multiplied by unit cost (€ ${product.unit_cost})`);
       }
@@ -441,43 +446,49 @@ const analyzeConfirmation = (options) => {
     cost += product.total_cost;
   }
 
-  if (boxes !== confirmation.totals.boxes) {
-    const fixedBoxes = fixNumber(confirmation.totals.boxes, boxes);
+  if (boxes !== parseInt(confirmation.totals.boxes)) {
+    const fixedBoxes = parseInt(fixNumber(confirmation.totals.boxes, boxes));
     if (fixedBoxes) {
       confirmation.totals.boxes = fixedBoxes;
     } else {
       confirmation.anomalies.push(`Box total (${confirmation.totals.boxes}) is not equal to the sum of boxes of products (${boxes})`);
     }
+  } else {
+    confirmation.totals.boxes = boxes;
   }
 
-  if (items !== confirmation.totals.items) {
-    const fixedItems = fixNumber(confirmation.totals.items, items);
+  if (items !== parseInt(confirmation.totals.items)) {
+    const fixedItems = parseInt(fixNumber(confirmation.totals.items, items));
     if (fixedItems) {
       confirmation.totals.items = fixedItems;
     } else {
       confirmation.anomalies.push(`Item total (${confirmation.totals.items}) is not equal to the sum of items of products (${items})`);
     }
+  } else {
+    confirmation.totals.items = items;
   }
 
 
-  if (cost.toFixed(2) !== confirmation.totals.cost.toFixed(2)) {
+  if (cost.toFixed(2) !== parseFloat(confirmation.totals.cost).toFixed(2)) {
     let fixed = false;
     if (Math.abs(cost - confirmation.totals.cost) < 0.01) {
       confirmation.totals.cost = parseFloat(cost.toFixed(2));
       fixed = true;
     } else {
       const fixedTotalCost = fixNumber(
-        parseFloat(confirmation.totals.cost.toFixed(2)),
-        parseFloat(cost.toFixed(2))
+        confirmation.totals.cost.toFixed(2),
+        cost.toFixed(2)
       );
       if (fixedTotalCost) {
-        confirmation.totals.cost = fixedTotalCost;
+        confirmation.totals.cost = parseFloat(fixedTotalCost).toFixed(2);
         fixed = true;
       }
     }
     if (!fixed) {
       confirmation.anomalies.push(`Total cost (€ ${confirmation.totals.cost}) is not equal to the sum of costs of products (€ ${cost})`)
     }
+  } else {
+    confirmation.totals.cost = parseFloat(cost.toFixed(2));
   }
 
   return confirmation;
