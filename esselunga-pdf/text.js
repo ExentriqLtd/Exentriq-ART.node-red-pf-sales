@@ -476,11 +476,11 @@ const analyzeConfirmation = (options) => {
       fixed = true;
     } else {
       const fixedTotalCost = fixNumber(
-        confirmation.totals.cost.toFixed(2),
+        parseFloat(confirmation.totals.cost).toFixed(2),
         cost.toFixed(2)
       );
       if (fixedTotalCost) {
-        confirmation.totals.cost = parseFloat(fixedTotalCost).toFixed(2);
+        confirmation.totals.cost = parseFloat(fixedTotalCost.toFixed(2));
         fixed = true;
       }
     }
