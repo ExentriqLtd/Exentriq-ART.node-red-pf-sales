@@ -95,7 +95,7 @@ const analyzeOrder = (items, products, warehouses) => {
           ean: product.ean,
           description: product.description,
           boxes: parseInt(items[index + 14]),
-          items: parseInt(items[index + 12])
+          items: parseInt(items[index + 16])
         }
         if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
           order.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
