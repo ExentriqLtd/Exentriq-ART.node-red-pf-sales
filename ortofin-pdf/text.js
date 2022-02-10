@@ -132,42 +132,40 @@ const analyzeConfirmation = (items, products, filename) => {
 
   for (const product of products) {
 
+    // check for all occurences... sometimes they duplicate a product!
     const indexes = items
-    .map((item, index) => item === product.customer_code ? index : -1)
-    .filter(index => index !== -1);
+      .map((item, index) => item === product.customer_code ? index : -1)
+      .filter(index => index !== -1);
 
     for (const index of indexes) {
-      // const index = items.indexOf(product.customer_code);
-      // if (index > -1) {
   
-        // sometimes "lotto" and "scadenza" are missing...
-        let offset;
-        if (items[index + 4] === 'C212') {
-          offset = 0;
-        } else if (items[index + 6] === 'C212') {
-          offset = 2;
-        } else {
-          offset = 3;
-        }
-  
-        const orderProduct = {
-          code: product.code,
-          customer_code: product.customer_code,
-          ean: product.ean,
-          description: product.description,
-          boxes: parseInt(items[index + 6 + offset]),
-          items: parseInt(items[index + 7 + offset]),
-          unit_cost: parseFloat(items[index + 8 + offset].replace(',', '.'))
-        }
-        if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
-          confirmation.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
-        }
-        orderProduct.total_cost = parseFloat((orderProduct.unit_cost * orderProduct.items).toFixed(4));
-        confirmation.totals.boxes += orderProduct.boxes;
-        confirmation.totals.items += orderProduct.items;
-        confirmation.totals.cost += orderProduct.total_cost;
-        confirmation.products.push(orderProduct);
-      // }
+      // sometimes "lotto" and "scadenza" are missing...
+      let offset;
+      if (items[index + 4] === 'C212') {
+        offset = 0;
+      } else if (items[index + 6] === 'C212') {
+        offset = 2;
+      } else {
+        offset = 3;
+      }
+
+      const orderProduct = {
+        code: product.code,
+        customer_code: product.customer_code,
+        ean: product.ean,
+        description: product.description,
+        boxes: parseInt(items[index + 6 + offset]),
+        items: parseInt(items[index + 7 + offset]),
+        unit_cost: parseFloat(items[index + 8 + offset].replace(',', '.'))
+      }
+      if (orderProduct.items !== orderProduct.boxes * product.boxItems) {
+        confirmation.anomalies.push(`Product "${product.description}": number of items (${orderProduct.items}) is not equal to number of boxes (${orderProduct.boxes}) multiplied by ${product.boxItems}`);
+      }
+      orderProduct.total_cost = parseFloat((orderProduct.unit_cost * orderProduct.items).toFixed(4));
+      confirmation.totals.boxes += orderProduct.boxes;
+      confirmation.totals.items += orderProduct.items;
+      confirmation.totals.cost += orderProduct.total_cost;
+      confirmation.products.push(orderProduct);
     }      
   }
   confirmation.totals.cost = parseFloat(confirmation.totals.cost.toFixed(4));
