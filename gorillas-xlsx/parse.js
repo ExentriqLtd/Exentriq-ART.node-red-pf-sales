@@ -85,6 +85,7 @@ const parseNewExcel = async (excelBuffer, products, warehouses) => {
     warehouseName: headers.indexOf('RAGIONE_SOCIALE'),
     boxes: headers.indexOf('QUANTITA_ORDINATA'),
     productCode: headers.indexOf('CODICE_ARTICOLO'),
+    items: headers.indexOf('NUM_PEZZI_ORDINATI'),
   };
 
   const destinations = rows.slice(1).reduce((acc, obj) => {
@@ -109,7 +110,8 @@ const parseNewExcel = async (excelBuffer, products, warehouses) => {
       const product = matchingProductByCustomerCode(obj[fieldMap.productCode].toString(), products);
 
       if (product) {
-        const boxes = obj[fieldMap.boxes];
+        let boxes = obj[fieldMap.boxes];
+        let items = obj[fieldMap.items];
         if (!isNaN(boxes)) {
           acc[index].products.push({
             code: product.code,
@@ -119,6 +121,15 @@ const parseNewExcel = async (excelBuffer, products, warehouses) => {
             boxes,
             items: boxes * product.boxItems
           });  
+        } else if (!isNaN(items)) {
+          acc[index].products.push({
+            code: product.code,
+            ean: product.ean,
+            customer_code: product.customer_code,
+            description: product.description,
+            boxes: 1,
+            items
+          })
         }
       }
     }
