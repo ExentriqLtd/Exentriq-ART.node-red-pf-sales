@@ -42,7 +42,7 @@ const parseExcel = async (xlsx, products, warehouses, date) => {
     const destinations = [];
 
     for (let index = fieldMap.boxItems + 1; index < headers.length; index++) {
-      if (!headers[index].trim().toLowerCase().startsWith('grand total')) {
+      if (!headers[index].trim().toLowerCase().startsWith('grand total') && !headers[index].trim().toLowerCase().startsWith('totale complessivo')) {
         const warehouseIndex = warehouses.map(x => x.name.toLowerCase()).findIndex(x => x.split('|').indexOf(headers[index].trim().toLowerCase()) > -1);
         if (warehouseIndex > -1) {
   
@@ -70,7 +70,7 @@ const parseExcel = async (xlsx, products, warehouses, date) => {
                 boxes,
                 items
               })   
-            } else if (row[fieldMap.productCode].toLowerCase() === 'grand total') {
+            } else if (row[fieldMap.productCode].toLowerCase() === 'grand total' || row[fieldMap.productCode].toLowerCase() === 'totale complessivo') {
               destination.readBoxTotal = parseInt(row[index]);
             } else {
               throw(`Unknown product code found: "${row[fieldMap.productCode]}"`)
