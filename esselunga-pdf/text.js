@@ -18,6 +18,16 @@ const regexes = {
     products: /(?<code>[\d\/BA]{6,})\s*(?<description>[\w\s]*?G*)\s*(?<boxes>[\d\/BA]*)\s*(?<items>[\d\/BA\.]*)\s{5,}(?<unitCost>[\d\/BA]{1,2},\s{0,1}[\d\/BA]{2,})\s*(?<totalCost>[\d\/BA\.]*,\s{0,1}[\d\/BA]{3,})/g,
     totals: /\n(?<boxTotal>[\d\/BA]*)\s{1,}(?<itemTotal>[\d\/BA\.]*)\s{5,}(?<costTotal>[\d\.\/BA]*,\/{0,1}\s{0,1}[\d\/BA]{2,})\nSi prega di verificare/,
     date: /Distinti saluti\nLimito di Pioltello, (?<day>[\d\/BA]{2,})\s*(?<month>\w*)\s*(?<year>[\d\/BA]{4})/
+  },
+  orderPFP: {
+    number: /TRASMETTIAMO NOSTRO ORDINE D'ACQUISTO\s*(?<number>\w\/[\d\/BA]*)\s*DEL/,
+    overrides: /ATTENZIONE: IL PRESENTE ORDINE DEL .* SOSTITUISCE IL\nPRECEDENTE INVIATO IL .* CON IL MEDESIMO CODICE/,
+    date: /TRASMETTIAMO NOSTRO ORDINE D'ACQUISTO\s*(?<number>\w\/[\d\/BA]*)\s*DEL\s*(?<day>[\d\/BA]{2})\/(?<month>[\d\/BA]{2})\/(?<year>[\d\/BA]{4})/,
+    destination: /^(?<address>.*)$\n\n^Q\.TA IN/m,
+    delivery: /CONSEGNARE TASSATIVAMENTE IL (?<day>[\d\/BA]{1,2})\/(?<month>[\d\/BA]{1,2})\/(?<year>[\d\/BA]{1,2})/,
+    warehouse: /IL NOSTRO MAGAZZINO RICEVE MERCI DALLE (?<fromHour>[\d\/BA]{1,2})\.(?<fromMinute>[\d\/BA]{1,2}) ALLE (?<toHour>[\d\/BA]{1,2})\.(?<toMinute>[\d\/BA]{1,2})/,
+    products: /(?<code>[\d\/BA]{6,})\s*(?<quantity>[\d\/BA]*)\s*[\w\s\/']*GR\.\s*9[08B]\s*[\d\/BA]*\s*[\d\/BA]{3}[xX][\d\/BA]{3}\n/g,
+    boxCount: /TOTALE COLL[IT]\s*(?<count>[\d\/BA]*)/
   }
 };
 
@@ -55,6 +65,9 @@ const fixDatePart = (datePart) => {
   }
   if (datePart > 60 && datePart < 70) {
     datePart -= 60;
+  }
+  if (datePart > 2900) {
+    datePart -= 900;
   }
 
   return datePart;
@@ -126,6 +139,7 @@ const analyzeOrder = (options) => {
 
   const order = {
     customer: 'Esselunga',
+    company: options.company,
     anomalies: [],
     number: null,
     overrides: false,
@@ -272,10 +286,185 @@ const analyzeOrder = (options) => {
   return order;
 };
 
+const analyzeOrderPFP = (options) => {
+
+  const order = {
+    customer: 'Esselunga',
+    company: options.company,
+    anomalies: [],
+    number: null,
+    overrides: false,
+    date: null,
+    delivery: null,
+    destinations: [
+      {
+        address: null,
+        from: null,
+        to: null,
+        products: []
+      }
+    ],
+    totals: {
+      boxes: 0,
+      items: 0
+    }
+  };
+
+  const { text, products, orderNumber } = options;
+  
+  let match;
+  let boxes = 0;
+
+  if (orderNumber) {
+    order.number = orderNumber;
+  } else {
+    match = text.match(regexes.orderPFP.number);
+    if (match) {
+      order.number = match.groups.number;
+    } else {
+      order.anomalies.push('Order number not recognized');
+    }  
+  }
+
+  match = text.match(regexes.orderPFP.overrides);
+  order.overrides = match ? true : false;
+
+  match = text.match(regexes.orderPFP.date);
+  if (match) {
+    const orderDate = {
+      day:  parseInt(match.groups.day),
+      month: parseInt(match.groups.month),
+      year: parseInt(match.groups.year)
+    };
+
+    orderDate.day = fixDatePart(orderDate.day);
+    orderDate.month = fixDatePart(orderDate.month);
+    orderDate.year = fixDatePart(orderDate.year);
+
+    try {
+      order.date = getDateFromObject(orderDate);
+    } catch (error) {
+      order.anomalies.push('Order date is not valid');
+    }
+  } else {
+    order.anomalies.push('Order date not recognized');
+  }
+
+  match = text.match(regexes.orderPFP.destination);
+  if (match) {
+    order.destinations[0].address = match.groups.address.replace(/\s{2,}/g, ' ');
+  } else {
+    oreder.anomalies.push('Destination address not recognized');
+  }
+
+  match = text.match(regexes.orderPFP.boxCount);
+  if (match) {
+    boxes = parseInt(match.groups.count.replace('.', ''));
+  } else {
+    order.anomalies.push('Total box count not recognized');
+  }
+
+  match = text.match(regexes.orderPFP.delivery);
+  if (match) {
+    const deliveryDate = {
+      day:  parseInt(match.groups.day),
+      month: parseInt(match.groups.month),
+      year: parseInt(match.groups.year)
+    };
+    try {
+      order.delivery = getDateFromObject(deliveryDate);
+    } catch (error) {
+      order.anomalies.push('Delivery date is not valid');
+    }
+  } else {
+    order.anomalies.push('Delivery date not recognized');
+  }
+
+  match = text.match(regexes.orderPFP.warehouse);
+  if (match) {
+    order.destinations[0].from = `${match.groups.fromHour}:${match.groups.fromMinute}`;
+    order.destinations[0].to = `${match.groups.toHour}:${match.groups.toMinute}`;
+  } else {
+    order.anomalies.push('Warehouse opening hours not recognized');
+  }
+
+  let matches = [];
+
+  // String.prototype.matchAll() is only available since Node.js v12.0.0
+  if (typeof String.prototype.matchAll === 'function') {
+    matches = [...text.matchAll(regexes.orderPFP.products)];
+  } else {
+    let m;
+    do {
+      m = regexes.orderPFP.products.exec(text);
+      if (m) {
+        matches.push(m);
+      }
+    } while (m);  
+  }
+
+  if (matches.length > 0) {
+    for (const match of matches) {
+
+      const code = match.groups.code.trim();
+      const matchingProduct = products.find(x => x.customer_code === code);
+
+      if (matchingProduct) {
+        const orderProduct = {
+          code: matchingProduct.code,
+          ean: matchingProduct.ean,
+          customer_code: matchingProduct.customer_code,
+          description: matchingProduct.description,
+          boxes: parseInt(match.groups.quantity.replace('.', '')),
+        };
+        orderProduct.items = orderProduct.boxes * matchingProduct.boxItems;
+        order.destinations[0].products.push(orderProduct);
+        order.totals.boxes += orderProduct.boxes
+        order.totals.items += orderProduct.items;
+      } else {
+        order.anomalies.push(`Product code ${code} not found`);
+      }
+    }
+  } else {
+    order.anomalies.push('Products not recognized');
+  }
+
+  let totalsOK = true;
+  
+  if (order.totals.boxes !== boxes) {
+    if (!fixNumber(boxes, order.totals.boxes)) {
+      for (const product of order.destinations[0].products) {
+        const others = order.destinations[0].products.reduce((acc, obj) => {
+          if (obj.code !== product.code) {
+            acc += obj.boxes;
+          }
+          return acc;
+        }, 0);
+        const fixedNumber = fixNumber(product.boxes, boxes - others );
+        if (fixedNumber) {
+          const matchingProduct = products.find(x => x.customer_code === product.customer_code);
+          order.totals.boxes += (fixedNumber - product.boxes);
+          order.totals.items += (fixedNumber - product.boxes) * matchingProduct.boxItems;
+          product.boxes = fixedNumber;
+        } else {
+          totalsOK = false;
+        }
+      }
+    }
+    if (!totalsOK) {
+      order.anomalies.push(`Calculated box count (${order.totals.boxes}) is different from the read box count (${boxes})`);
+    }
+  }
+
+  return order;
+};
+
+
 const analyzeConfirmation = (options) => {
 
   const confirmation = {
     customer: 'Esselunga',
+    company: options.company,
     anomalies: [],
     date: null,
     order: null,
@@ -347,10 +536,10 @@ const analyzeConfirmation = (options) => {
       const product = {
         customer_code: match.groups.code.trim(),
         description: match.groups.description.trim(),
-        boxes: parseInt(match.groups.boxes.replace('.', '')),
-        items: parseInt(match.groups.items.replace('.', '')),
-        unit_cost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.').replace('B', '0').replace('/', '7')),
-        total_cost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0').replace('/', '7'))
+        boxes: parseInt(match.groups.boxes.replace('.', '').replace('B', '0').replace('/', '7').replace('A', '4')),
+        items: parseInt(match.groups.items.replace('.', '').replace('B', '0').replace('/', '7').replace('A', '4')),
+        unit_cost: parseFloat(match.groups.unitCost.replace(/\s*/g, '').replace(',', '.').replace('B', '0').replace('/', '7').replace('A', '4')),
+        total_cost: parseFloat(match.groups.totalCost.replace(/\s*/g, '').replace('.', '').replace(',', '.').replace('B', '0').replace('/', '7').replace('A', '4'))
       };
 
       if (product.total_cost.toFixed(2) !== (product.items * product.unit_cost).toFixed(2)) {
@@ -498,14 +687,22 @@ const analyzeConfirmation = (options) => {
 const documentTypeObjects = [
   {
     name: 'order',
+    company: 'IT10295660962',
     needle: /TRASMETTIAMO NOSTRO ORDINE DI ACQUISTO/,
     analyzer: analyzeOrder
   },
   {
     name: 'confirmation',
+    company: 'IT10295660962',
     needle: /Conferma ricezione merce/,
     analyzer: analyzeConfirmation
-  }
+  },
+  {
+    name: 'order',
+    company: 'IT11076830964',
+    needle: /PROCESSING \$\.R\.L/,
+    analyzer: analyzeOrderPFP
+  },
 ];
 
 const analyzeText = (options) => {
@@ -513,9 +710,10 @@ const analyzeText = (options) => {
   let analyzer;
 
   let documentType = options.documentType ? options.documentType : null;
+  let company = options.company ? options.company : null;
 
-  if (documentType) {
-    analyzer = documentTypeObjects.find(x => x.name === documentType).analyzer;
+  if (documentType && company) {
+    analyzer = documentTypeObjects.find(x => (x.name === documentType && x.company === company)).analyzer;
   } else {
     for (const documentTypeObject of documentTypeObjects) {
       if (options.text.search(documentTypeObject.needle) > -1) {

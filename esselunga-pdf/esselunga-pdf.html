@@ -1,12 +1,16 @@
 <script type="text/javascript">
 
   const productsEsselunga = [
-    { code: '200004', ean: '8059300850091', customer_code: '755001', description: 'Yummix Delicato 80g', boxItems: 8 },
-    { code: '200002', ean: '8059300850077', customer_code: '755002', description: 'Yummix Orientale 80g', boxItems: 8 },
-    { code: '200003', ean: '8059300850084', customer_code: '755003', description: 'Yummix Piccante 80g', boxItems: 8 },
-    { code: '200000', ean: '8059300850039', customer_code: '755005', description: 'Lattugood 80g', boxItems: 8 },
-    { code: '200001', ean: '80593008500??', customer_code: '755004', description: 'Basilicooh 25g', boxItems: 10 },
-    { code: "200005", ean: "8059300850114", customer_code: "755006", description: "Rucool 80g", boxItems: 8 }
+    { company: 'IT10295660962', code: '200004', ean: '8059300850091', customer_code: '755001', description: 'Yummix Delicato 80g', boxItems: 8 },
+    { company: 'IT10295660962', code: '200002', ean: '8059300850077', customer_code: '755002', description: 'Yummix Orientale 80g', boxItems: 8 },
+    { company: 'IT10295660962', code: '200003', ean: '8059300850084', customer_code: '755003', description: 'Yummix Piccante 80g', boxItems: 8 },
+    { company: 'IT10295660962', code: '200000', ean: '8059300850039', customer_code: '755005', description: 'Lattugood 80g', boxItems: 8 },
+    { company: 'IT10295660962', code: '200001', ean: '80593008500??', customer_code: '755004', description: 'Basilicooh 25g', boxItems: 10 },
+    { company: 'IT10295660962', code: '200005', ean: '8059300850114', customer_code: '755006', description: 'Rucool 80g', boxItems: 8 },
+    { company: 'IT10295660962', code: '200008', ean: '8059300850138', customer_code: '755007', description: 'Yummix Vivace 80g', boxItems: 8 },
+    { company: 'IT10295660962', code: '200007', ean: '8059300850145', customer_code: '755008', description: 'Yummix Esotico 80g', boxItems: 8 },
+    { company: 'IT11076830964', code: '200000', ean: '8059575470017', customer_code: '118040', description: 'Pestooh 90g', boxItems: 8 },
+    { company: 'IT11076830964', code: '200001', ean: '8059575470024', customer_code: '118041', description: "Pesto senza aglio 90g", boxItems: 8 }
   ];
 
   RED.nodes.registerType('esselunga-pdf', {
@@ -17,7 +21,8 @@
       products: { value: JSON.stringify(productsEsselunga) }
     },
     inputs: 1,
-    outputs: 1,
+    outputs: 2,
+    outputLabels: ['External OCR', 'Internal OCR'],
     icon: 'esselunga.svg',
     label: function() {
       return this.name || 'Esselunga';

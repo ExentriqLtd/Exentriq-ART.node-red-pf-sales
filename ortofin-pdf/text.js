@@ -59,7 +59,7 @@ const analyzeOrder = (items, products, filename) => {
       if (index > -1) {
 
         // sometimes "Imb" is missing...
-        const offset = items[index + 3] === 'C212' ? 1 : 0;
+        const offset = items[index + 3].match(/C\d{3}/) ? 1 : 0;
 
         const orderProduct = {
           code: product.code,

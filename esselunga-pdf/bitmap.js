@@ -153,5 +153,6 @@ const extractBitmapBuffer = async (pdfData) => {
 
 
 module.exports = {
+  extractImageFromPDF,
   extractBitmapBuffer
 };
