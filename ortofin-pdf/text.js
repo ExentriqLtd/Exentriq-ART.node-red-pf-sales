@@ -141,9 +141,9 @@ const analyzeConfirmation = (items, products, filename) => {
   
       // sometimes "lotto" and "scadenza" are missing...
       let offset;
-      if (items[index + 4] === 'C212') {
+      if (items[index + 4].match(/C\d{3}/)) {
         offset = 0;
-      } else if (items[index + 6] === 'C212') {
+      } else if (items[index + 6].match(/C\d{3}/)) {
         offset = 2;
       } else {
         offset = 3;
